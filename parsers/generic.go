@@ -4,7 +4,8 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
-	"github.com/rvazarkar/go-winacl/models"
+
+	"github.com/kgoins/go-winacl/models"
 	"golang.org/x/sys/windows"
 )
 

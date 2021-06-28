@@ -4,7 +4,8 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"github.com/rvazarkar/go-winacl/models"
+
+	"github.com/kgoins/go-winacl/models"
 )
 
 func ParseNtSecurityDescriptor(ntSecurityDescriptorBytes []byte) (models.NtSecurityDescriptor, error) {
