@@ -3,7 +3,6 @@ package parsers
 import (
 	"bytes"
 	"encoding/binary"
-	"fmt"
 
 	"github.com/kgoins/go-winacl/models"
 )
@@ -45,10 +44,11 @@ func ReadACLHeader(buf *bytes.Buffer) models.ACLHeader {
 func ReadACL(buf *bytes.Buffer) models.ACL {
 	acl := models.ACL{}
 	acl.Header = ReadACLHeader(buf)
+	acl.Aces = make([]models.ACE, 0, acl.Header.AceCount)
+
 	for i := 0; i < int(acl.Header.AceCount); i++ {
-		fmt.Printf("Ace Index %v\n", i)
 		ace := ParseAce(buf)
-		fmt.Println(ace)
+		acl.Aces = append(acl.Aces, ace)
 	}
 
 	return acl
