@@ -3,6 +3,7 @@ package models
 import (
 	"bytes"
 	"fmt"
+
 	"golang.org/x/sys/windows"
 )
 
@@ -32,5 +33,11 @@ type NtSecurityDescriptorHeader struct {
 }
 
 func (s NtSecurityDescriptor) String() string {
-	return fmt.Sprintf("Parsed Security Descriptor:\n Offsets:\n Owner=%v Group=%v Sacl=%v Dacl=%v\n", s.Header.OffsetOwner, s.Header.OffsetGroup, s.Header.OffsetDacl, s.Header.OffsetSacl)
+	return fmt.Sprintf(
+		"Parsed Security Descriptor:\n Offsets:\n Owner=%v Group=%v Sacl=%v Dacl=%v\n",
+		s.Header.OffsetOwner,
+		s.Header.OffsetGroup,
+		s.Header.OffsetDacl,
+		s.Header.OffsetSacl,
+	)
 }
