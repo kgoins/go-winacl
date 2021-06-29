@@ -1,4 +1,4 @@
-package models
+package winacl
 
 type ACL struct {
 	Header ACLHeader

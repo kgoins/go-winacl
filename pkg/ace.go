@@ -1,9 +1,10 @@
-package models
+package winacl
 
 import (
 	"fmt"
-	"golang.org/x/sys/windows"
 	"strings"
+
+	"golang.org/x/sys/windows"
 )
 
 type AceType byte
@@ -115,8 +116,7 @@ type SystemAuditAce BasicAce
 type SystemAlarmAce BasicAce
 
 // No idea what this actually is and it doesn't appear to be documented anywhere
-type AccessAllowedCompoundAce struct {
-}
+type AccessAllowedCompoundAce struct{}
 
 type AccessAllowedObjectAce AdvancedAce
 type AccessDeniedObjectAce AdvancedAce

@@ -1,23 +1,21 @@
-package parsers
+package winacl
 
 import (
 	"bytes"
 	"encoding/binary"
-
-	"github.com/kgoins/go-winacl/models"
 )
 
-func ParseNtSecurityDescriptor(ntSecurityDescriptorBytes []byte) (models.NtSecurityDescriptor, error) {
+func ParseNtSecurityDescriptor(ntSecurityDescriptorBytes []byte) (NtSecurityDescriptor, error) {
 	var buf = bytes.NewBuffer(ntSecurityDescriptorBytes)
-	ntsd := models.NtSecurityDescriptor{}
+	ntsd := NtSecurityDescriptor{}
 	ntsd.Header = ReadNTSDHeader(buf)
 	ntsd.DACL = ReadACL(buf)
 
 	return ntsd, nil
 }
 
-func ReadNTSDHeader(buf *bytes.Buffer) models.NtSecurityDescriptorHeader {
-	var descriptor = models.NtSecurityDescriptorHeader{}
+func ReadNTSDHeader(buf *bytes.Buffer) NtSecurityDescriptorHeader {
+	var descriptor = NtSecurityDescriptorHeader{}
 
 	binary.Read(buf, binary.LittleEndian, &descriptor.Revision)
 	binary.Read(buf, binary.LittleEndian, &descriptor.Sbz1)
@@ -30,8 +28,8 @@ func ReadNTSDHeader(buf *bytes.Buffer) models.NtSecurityDescriptorHeader {
 	return descriptor
 }
 
-func ReadACLHeader(buf *bytes.Buffer) models.ACLHeader {
-	var header = models.ACLHeader{}
+func ReadACLHeader(buf *bytes.Buffer) ACLHeader {
+	var header = ACLHeader{}
 	binary.Read(buf, binary.LittleEndian, &header.Revision)
 	binary.Read(buf, binary.LittleEndian, &header.Sbz1)
 	binary.Read(buf, binary.LittleEndian, &header.Size)
@@ -41,10 +39,10 @@ func ReadACLHeader(buf *bytes.Buffer) models.ACLHeader {
 	return header
 }
 
-func ReadACL(buf *bytes.Buffer) models.ACL {
-	acl := models.ACL{}
+func ReadACL(buf *bytes.Buffer) ACL {
+	acl := ACL{}
 	acl.Header = ReadACLHeader(buf)
-	acl.Aces = make([]models.ACE, 0, acl.Header.AceCount)
+	acl.Aces = make([]ACE, 0, acl.Header.AceCount)
 
 	for i := 0; i < int(acl.Header.AceCount); i++ {
 		ace := ParseAce(buf)

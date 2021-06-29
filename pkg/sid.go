@@ -1,25 +1,32 @@
-package parsers
+package winacl
 
 import (
 	"bytes"
 	"encoding/binary"
 	"errors"
-
-	"github.com/kgoins/go-winacl/models"
-	"golang.org/x/sys/windows"
+	"fmt"
+	"strings"
 )
 
-func ReadGUID(buf *bytes.Buffer) windows.GUID {
-	guid := windows.GUID{}
-	binary.Read(buf, binary.LittleEndian, &guid.Data1)
-	binary.Read(buf, binary.LittleEndian, &guid.Data2)
-	binary.Read(buf, binary.LittleEndian, &guid.Data3)
-	binary.Read(buf, binary.LittleEndian, &guid.Data4)
-	return guid
+type SID struct {
+	Revision       byte
+	NumAuthorities byte
+	Authority      []byte
+	SubAuthorities []uint32
 }
 
-func ReadSID(buf *bytes.Buffer, sidLength int) (models.SID, error) {
-	sid := models.SID{}
+func (s SID) String() string {
+	var sb strings.Builder
+
+	sb.WriteString(fmt.Sprintf("S-%v-%v", s.Revision, int(s.Authority[5])))
+	for i := 0; i < int(s.NumAuthorities); i++ {
+		sb.WriteString(fmt.Sprintf("-%v", s.SubAuthorities[i]))
+	}
+	return sb.String()
+}
+
+func ReadSID(buf *bytes.Buffer, sidLength int) (SID, error) {
+	sid := SID{}
 	data := buf.Next(sidLength)
 
 	if revision := data[0]; revision != 1 {
@@ -43,5 +50,4 @@ func ReadSID(buf *bytes.Buffer, sidLength int) (models.SID, error) {
 
 		return sid, nil
 	}
-
 }
