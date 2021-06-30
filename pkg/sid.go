@@ -25,7 +25,7 @@ func (s SID) String() string {
 	return sb.String()
 }
 
-func ReadSID(buf *bytes.Buffer, sidLength int) (SID, error) {
+func NewSID(buf *bytes.Buffer, sidLength int) (SID, error) {
 	sid := SID{}
 	data := buf.Next(sidLength)
 

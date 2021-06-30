@@ -20,7 +20,7 @@ func TestBuildNTSD(t *testing.T) {
 	ntsdBytes, err := base64.StdEncoding.DecodeString(string(testBytes))
 	r.NoError(err)
 
-	ntsd, err := winacl.ParseNtSecurityDescriptor(ntsdBytes)
+	ntsd, err := winacl.NewNtSecurityDescriptor(ntsdBytes)
 	r.NoError(err)
 
 	dacl := ntsd.DACL
