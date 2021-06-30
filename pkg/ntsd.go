@@ -8,13 +8,6 @@ import (
 	"golang.org/x/sys/windows"
 )
 
-type RawSecurityDescriptor []byte
-type ParsedSecurityDescriptor struct {
-	Buf        *bytes.Buffer
-	Descriptor NtSecurityDescriptor
-}
-type BufferedSecurityDescriptor *bytes.Buffer
-
 type NtSecurityDescriptor struct {
 	Header NtSecurityDescriptorHeader
 	DACL   ACL
