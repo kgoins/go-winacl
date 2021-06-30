@@ -33,17 +33,3 @@ func TestBuildNTSD(t *testing.T) {
 	r.NotNil(dacl)
 	r.Equal(dacl.Header.AceCount, len(dacl.Aces))
 }
-
-func TestGetSDDL(t *testing.T) {
-	r := require.New(t)
-
-	ntsdBytes, err := getTestNtsdBytes()
-	r.NoError(err)
-
-	ntsd, err := winacl.NewNtSecurityDescriptor(ntsdBytes)
-	r.NoError(err)
-
-	sddl, err := ntsd.GetSDDL()
-	r.NoError(err)
-	r.NotEmpty(sddl)
-}

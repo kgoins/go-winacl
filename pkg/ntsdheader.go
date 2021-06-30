@@ -3,9 +3,6 @@ package winacl
 import (
 	"bytes"
 	"encoding/binary"
-
-	"github.com/audibleblink/bamflags"
-	"golang.org/x/sys/windows"
 )
 
 type NtSecurityDescriptorHeader struct {
@@ -16,38 +13,6 @@ type NtSecurityDescriptorHeader struct {
 	OffsetGroup uint32
 	OffsetSacl  uint32
 	OffsetDacl  uint32
-}
-
-type NtsdDefaultedFlags struct {
-	OwnerDefaulted bool
-	GroupDefaulted bool
-	DACLDefaulted  bool
-	SACLDefaulted  bool
-}
-
-// Ref: https://docs.microsoft.com/en-us/windows/win32/api/securitybaseapi/nf-securitybaseapi-setsecuritydescriptordacl
-func (h NtSecurityDescriptorHeader) GetDefaultedFlagsFromControl() (f NtsdDefaultedFlags, err error) {
-	f.OwnerDefaulted, err = bamflags.Contains(int64(h.Control), windows.SE_OWNER_DEFAULTED)
-	if err != nil {
-		return
-	}
-
-	f.GroupDefaulted, err = bamflags.Contains(int64(h.Control), windows.SE_GROUP_DEFAULTED)
-	if err != nil {
-		return
-	}
-
-	f.SACLDefaulted, err = bamflags.Contains(int64(h.Control), windows.SE_SACL_DEFAULTED)
-	if err != nil {
-		return
-	}
-
-	f.DACLDefaulted, err = bamflags.Contains(int64(h.Control), windows.SE_DACL_DEFAULTED)
-	if err != nil {
-		return
-	}
-
-	return
 }
 
 func NewNTSDHeader(buf *bytes.Buffer) NtSecurityDescriptorHeader {

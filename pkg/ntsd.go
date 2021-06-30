@@ -3,16 +3,14 @@ package winacl
 import (
 	"bytes"
 	"fmt"
-
-	"golang.org/x/sys/windows"
 )
 
 type NtSecurityDescriptor struct {
 	Header NtSecurityDescriptorHeader
 	DACL   ACL
 	SACL   ACL
-	Owner  windows.SID
-	Group  windows.SID
+	Owner  SID
+	Group  SID
 }
 
 func (s NtSecurityDescriptor) String() string {
@@ -32,13 +30,4 @@ func NewNtSecurityDescriptor(ntsdBytes []byte) (NtSecurityDescriptor, error) {
 	ntsd.DACL = NewACL(buf)
 
 	return ntsd, nil
-}
-
-func (s NtSecurityDescriptor) GetSDDL() (string, error) {
-	secDesc, err := BuildSysNtsd(s)
-	if err != nil {
-		return "", err
-	}
-
-	return secDesc.String(), nil
 }

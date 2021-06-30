@@ -96,9 +96,9 @@ func (s BasicAce) GetPrincipal() SID {
 }
 
 type AdvancedAce struct {
-	Flags               uint32       //4 bytes
-	ObjectType          windows.GUID //16 bytes
-	InheritedObjectType windows.GUID
+	Flags               uint32 //4 bytes
+	ObjectType          GUID   //16 bytes
+	InheritedObjectType GUID
 	SecurityIdentifier  SID
 }
 

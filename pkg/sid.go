@@ -18,10 +18,16 @@ type SID struct {
 func (s SID) String() string {
 	var sb strings.Builder
 
-	sb.WriteString(fmt.Sprintf("S-%v-%v", s.Revision, int(s.Authority[5])))
+	sb.WriteString(fmt.Sprintf(
+		"S-%v-%v",
+		s.Revision,
+		int(s.Authority[5]),
+	))
+
 	for i := 0; i < int(s.NumAuthorities); i++ {
 		sb.WriteString(fmt.Sprintf("-%v", s.SubAuthorities[i]))
 	}
+
 	return sb.String()
 }
 
