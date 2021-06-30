@@ -1,8 +1,7 @@
-package models
+package winacl
 
 import (
 	"fmt"
-	"golang.org/x/sys/windows"
 	"strings"
 )
 
@@ -47,10 +46,12 @@ const (
 	ACEInheritanceFlagsInheritedObjectTypePresent                     = 0x02
 )
 
+type ACEAccessMask uint32
+
 //Header + AccessMask is 16 bytes
 type ACE struct {
 	Header     ACEHeader
-	AccessMask windows.ACCESS_MASK
+	AccessMask ACEAccessMask
 	ObjectAce  ObjectAce
 }
 
@@ -95,9 +96,9 @@ func (s BasicAce) GetPrincipal() SID {
 }
 
 type AdvancedAce struct {
-	Flags               uint32       //4 bytes
-	ObjectType          windows.GUID //16 bytes
-	InheritedObjectType windows.GUID
+	Flags               uint32 //4 bytes
+	ObjectType          GUID   //16 bytes
+	InheritedObjectType GUID
 	SecurityIdentifier  SID
 }
 
@@ -115,8 +116,7 @@ type SystemAuditAce BasicAce
 type SystemAlarmAce BasicAce
 
 // No idea what this actually is and it doesn't appear to be documented anywhere
-type AccessAllowedCompoundAce struct {
-}
+type AccessAllowedCompoundAce struct{}
 
 type AccessAllowedObjectAce AdvancedAce
 type AccessDeniedObjectAce AdvancedAce
