@@ -2,7 +2,6 @@ package winacl
 
 import (
 	"bytes"
-	"encoding/binary"
 	"fmt"
 
 	"golang.org/x/sys/windows"
@@ -14,16 +13,6 @@ type NtSecurityDescriptor struct {
 	SACL   ACL
 	Owner  windows.SID
 	Group  windows.SID
-}
-
-type NtSecurityDescriptorHeader struct {
-	Revision    byte
-	Sbz1        byte
-	Control     uint16
-	OffsetOwner uint32
-	OffsetGroup uint32
-	OffsetSacl  uint32
-	OffsetDacl  uint32
 }
 
 func (s NtSecurityDescriptor) String() string {
@@ -45,16 +34,11 @@ func NewNtSecurityDescriptor(ntsdBytes []byte) (NtSecurityDescriptor, error) {
 	return ntsd, nil
 }
 
-func NewNTSDHeader(buf *bytes.Buffer) NtSecurityDescriptorHeader {
-	var descriptor = NtSecurityDescriptorHeader{}
+func (s NtSecurityDescriptor) GetSDDL() (string, error) {
+	secDesc, err := BuildSysNtsd(s)
+	if err != nil {
+		return "", err
+	}
 
-	binary.Read(buf, binary.LittleEndian, &descriptor.Revision)
-	binary.Read(buf, binary.LittleEndian, &descriptor.Sbz1)
-	binary.Read(buf, binary.LittleEndian, &descriptor.Control)
-	binary.Read(buf, binary.LittleEndian, &descriptor.OffsetOwner)
-	binary.Read(buf, binary.LittleEndian, &descriptor.OffsetGroup)
-	binary.Read(buf, binary.LittleEndian, &descriptor.OffsetSacl)
-	binary.Read(buf, binary.LittleEndian, &descriptor.OffsetDacl)
-
-	return descriptor
+	return secDesc.String(), nil
 }
