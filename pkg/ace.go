@@ -3,8 +3,6 @@ package winacl
 import (
 	"fmt"
 	"strings"
-
-	"golang.org/x/sys/windows"
 )
 
 type AceType byte
@@ -48,10 +46,12 @@ const (
 	ACEInheritanceFlagsInheritedObjectTypePresent                     = 0x02
 )
 
+type ACEAccessMask uint32
+
 //Header + AccessMask is 16 bytes
 type ACE struct {
 	Header     ACEHeader
-	AccessMask windows.ACCESS_MASK
+	AccessMask ACEAccessMask
 	ObjectAce  ObjectAce
 }
 
