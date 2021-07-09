@@ -27,6 +27,26 @@ const (
 	AceTypeSystemAlarmCallbackObject
 )
 
+var TypeLookup = map[AceType]string{
+	AceTypeAccessAllowed:               "ACCESS_ALLOWED",
+	AceTypeAccessDenied:                "ACCESS_DENIED",
+	AceTypeSystemAudit:                 "SYSTEM_AUDIT",
+	AceTypeSystemAlarm:                 "SYSTEM_ALARM",
+	AceTypeAccessAllowedCompound:       "ACCESS_ALLOWED_COMPOUND",
+	AceTypeAccessAllowedObject:         "ACCESS_ALLOWED_OBJECT",
+	AceTypeAccessDeniedObject:          "ACCESS_DENIED_OBJECT",
+	AceTypeSystemAuditObject:           "SYSTEM_AUDIT_OBJECT",
+	AceTypeSystemAlarmObject:           "SYSTEM_ALARM_OBJECT",
+	AceTypeAccessAllowedCallback:       "ACCESS_ALLOWED_CALLBACK",
+	AceTypeAccessDeniedCallback:        "ACCESS_DENIED_CALLBACK",
+	AceTypeAccessAllowedCallbackObject: "ACCESS_ALLOWED_CALLBACK_OBJECT",
+	AceTypeAccessDeniedCallbackObject:  "ACCESS_DENIED_CALLBACK_OBJECT",
+	AceTypeSystemAuditCallback:         "SYSTEM_AUDIT_CALLBACK",
+	AceTypeSystemAlarmCallback:         "SYSTEM_ALARM_CALLBACK",
+	AceTypeSystemAuditCallbackObject:   "SYSTEM_AUDIT_CALLBACK_OBJECT",
+	AceTypeSystemAlarmCallbackObject:   "SYSTEM_ALARM_CALLBACK_OBJECT",
+}
+
 type ACEHeaderFlags byte
 
 const (
@@ -57,13 +77,21 @@ type ACE struct {
 
 func (s ACE) String() string {
 	sb := strings.Builder{}
-	sb.WriteString(fmt.Sprintf("AceType: %v. AccessMask: %v. Flags: %v\n", s.Header.Type, s.AccessMask, s.Header.Flags))
+	sb.WriteString(fmt.Sprintf("AceType: %s. AccessMask: %v. Flags: %v\n",
+		s.GetTypeString(),
+		s.AccessMask,
+		s.Header.Flags))
 	switch s.ObjectAce.(type) {
 	case BasicAce:
 		sb.WriteString(fmt.Sprintf("SID: %v\n", s.ObjectAce.GetPrincipal()))
 	case AdvancedAce:
 		aa := s.ObjectAce.(AdvancedAce)
-		sb.WriteString(fmt.Sprintf("SID: %v. ObjectType: %v. InheritedObjectType: %v. Flags: %v\n", aa.GetPrincipal(), aa.ObjectType, aa.InheritedObjectType, aa.Flags))
+		sb.WriteString(
+			fmt.Sprintf("SID: %v. ObjectType: %v. InheritedObjectType: %v. Flags: %v\n",
+				aa.GetPrincipal(),
+				aa.ObjectType,
+				aa.InheritedObjectType,
+				aa.Flags))
 	}
 
 	return sb.String()
@@ -85,6 +113,10 @@ type ACEObjectType struct {
 
 func (s ACE) GetType() AceType {
 	return s.Header.Type
+}
+
+func (s ACE) GetTypeString() string {
+	return TypeLookup[s.Header.Type]
 }
 
 type BasicAce struct {
