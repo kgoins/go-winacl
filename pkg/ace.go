@@ -3,6 +3,8 @@ package winacl
 import (
 	"fmt"
 	"strings"
+
+	"github.com/audibleblink/bamflags"
 )
 
 type AceType byte
@@ -66,7 +68,52 @@ const (
 	ACEInheritanceFlagsInheritedObjectTypePresent                     = 0x02
 )
 
-type ACEAccessMask uint32
+type ACEAccessMask struct {
+	value uint32
+}
+
+const (
+	AccessMaskGenericRead    = 0x80000000
+	AccessMaskGenericWrite   = 0x40000000
+	AccessMaskGenericExecute = 0x20000000
+	AccessMaskGenericAll     = 0x10000000
+	AccessMaskMaximumAllowed = 0x02000000
+	AccessMaskSystemSecurity = 0x01000000
+	AccessMaskSynchronize    = 0x00100000
+	AccessMaskWriteOwner     = 0x00080000
+	AccessMaskWriteDACL      = 0x00040000
+	AccessMaskReadControl    = 0x00020000
+	AccessMaskDelete         = 0x00010000
+)
+
+var MaskLookup = map[uint32]string{
+	AccessMaskGenericRead:    "GenericRead",
+	AccessMaskGenericWrite:   "GenericWrite",
+	AccessMaskGenericExecute: "GenericExecute",
+	AccessMaskGenericAll:     "GenericAll",
+	AccessMaskMaximumAllowed: "MaximumAllowed",
+	AccessMaskSystemSecurity: "SystemSecurity",
+	AccessMaskSynchronize:    "Synchronize",
+	AccessMaskWriteOwner:     "WriteOwner",
+	AccessMaskWriteDACL:      "WriteDACL",
+	AccessMaskReadControl:    "ReadControl",
+	AccessMaskDelete:         "Delete",
+}
+
+func (am ACEAccessMask) Raw() uint32 {
+	return am.value
+}
+
+func (am ACEAccessMask) String() string {
+	sb := strings.Builder{}
+	rights, _ := bamflags.ParseInt(int64(am.value))
+	for _, right := range rights {
+		if perm := MaskLookup[uint32(right)]; perm != "" {
+			fmt.Fprintf(&sb, "%s ", perm)
+		}
+	}
+	return sb.String()
+}
 
 //Header + AccessMask is 16 bytes
 type ACE struct {
@@ -77,9 +124,9 @@ type ACE struct {
 
 func (s ACE) String() string {
 	sb := strings.Builder{}
-	sb.WriteString(fmt.Sprintf("AceType: %s. AccessMask: %v. Flags: %v\n",
+	sb.WriteString(fmt.Sprintf("AceType: %s\nAccessMask: %v\nFlags: %v\n",
 		s.GetTypeString(),
-		s.AccessMask,
+		s.AccessMask.String(),
 		s.Header.Flags))
 	switch s.ObjectAce.(type) {
 	case BasicAce:
@@ -87,7 +134,7 @@ func (s ACE) String() string {
 	case AdvancedAce:
 		aa := s.ObjectAce.(AdvancedAce)
 		sb.WriteString(
-			fmt.Sprintf("SID: %v. ObjectType: %v. InheritedObjectType: %v. Flags: %v\n",
+			fmt.Sprintf("SID: %v\nObjectType: %v\nInheritedObjectType: %v\nFlags: %v\n",
 				aa.GetPrincipal(),
 				aa.ObjectType,
 				aa.InheritedObjectType,

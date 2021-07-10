@@ -10,7 +10,7 @@ func NewAce(buf *bytes.Buffer) ACE {
 	ace := ACE{}
 
 	ace.Header = NewACEHeader(buf)
-	binary.Read(buf, binary.LittleEndian, &ace.AccessMask)
+	binary.Read(buf, binary.LittleEndian, &ace.AccessMask.value)
 	switch ace.Header.Type {
 	case AceTypeAccessAllowed, AceTypeAccessDenied, AceTypeSystemAudit, AceTypeSystemAlarm, AceTypeAccessAllowedCallback, AceTypeAccessDeniedCallback, AceTypeSystemAuditCallback, AceTypeSystemAlarmCallback:
 		ace.ObjectAce = NewBasicAce(buf, ace.Header.Size)
