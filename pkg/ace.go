@@ -84,20 +84,36 @@ const (
 	AccessMaskWriteDACL      = 0x00040000
 	AccessMaskReadControl    = 0x00020000
 	AccessMaskDelete         = 0x00010000
+
+	// Advances ACE Masks
+	ADSRightDSControlAccess = 0x00000100
+	ADSRightDSWriteProp     = 0x00000020
+	ADSRightDSReadProp      = 0x00000010
+	ADSRightDSSelf          = 0x00000008
+	ADSRightDSDeleteChild   = 0x00000002
+	ADSRightDSCreateChild   = 0x00000001
 )
 
 var MaskLookup = map[uint32]string{
-	AccessMaskGenericRead:    "GenericRead",
-	AccessMaskGenericWrite:   "GenericWrite",
-	AccessMaskGenericExecute: "GenericExecute",
-	AccessMaskGenericAll:     "GenericAll",
-	AccessMaskMaximumAllowed: "MaximumAllowed",
-	AccessMaskSystemSecurity: "SystemSecurity",
-	AccessMaskSynchronize:    "Synchronize",
-	AccessMaskWriteOwner:     "WriteOwner",
-	AccessMaskWriteDACL:      "WriteDACL",
-	AccessMaskReadControl:    "ReadControl",
-	AccessMaskDelete:         "Delete",
+	AccessMaskGenericRead:    "GENERIC_READ",
+	AccessMaskGenericWrite:   "GENERIC_WRITE",
+	AccessMaskGenericExecute: "GENERIC_EXECUTE",
+	AccessMaskGenericAll:     "GENERIC_ALL",
+	AccessMaskMaximumAllowed: "MAXIMUM_ALLOWED",
+	AccessMaskSystemSecurity: "SYSTEM_SECURITY",
+	AccessMaskSynchronize:    "SYNCHRONIZE",
+	AccessMaskWriteOwner:     "WRITE_OWNER",
+	AccessMaskWriteDACL:      "WRITE_DACL",
+	AccessMaskReadControl:    "READ_CONTROL",
+	AccessMaskDelete:         "DELETE",
+
+	// Advanced ACEs
+	ADSRightDSControlAccess: "CONTROL_ACCESS",
+	ADSRightDSWriteProp:     "WRITE_PROP",
+	ADSRightDSReadProp:      "READ_PROP",
+	ADSRightDSSelf:          "SELF",
+	ADSRightDSDeleteChild:   "DELETE_CHILD",
+	ADSRightDSCreateChild:   "CREATE_CHILD",
 }
 
 func (am ACEAccessMask) Raw() uint32 {
@@ -124,18 +140,23 @@ type ACE struct {
 
 func (s ACE) String() string {
 	sb := strings.Builder{}
-	sb.WriteString(fmt.Sprintf("AceType: %s\nAccessMask: %v\nFlags: %v\n",
-		s.GetTypeString(),
-		s.AccessMask.String(),
-		s.Header.Flags))
+	aceType := s.GetTypeString()
+	perms := s.AccessMask.String()
+
 	switch s.ObjectAce.(type) {
 	case BasicAce:
 		sb.WriteString(fmt.Sprintf("SID: %v\n", s.ObjectAce.GetPrincipal()))
+		sb.WriteString(fmt.Sprintf("AceType: %s\nPermissions: %v\nFlags: %v\n",
+			aceType,
+			perms,
+			s.Header.Flags))
 	case AdvancedAce:
 		aa := s.ObjectAce.(AdvancedAce)
 		sb.WriteString(
-			fmt.Sprintf("SID: %v\nObjectType: %v\nInheritedObjectType: %v\nFlags: %v\n",
+			fmt.Sprintf("SID: %v\nAceType: %s\nPermissions: %s\nObjectType: %v\nInheritedObjectType: %v\nFlags: %v\n",
 				aa.GetPrincipal(),
+				aceType,
+				perms,
 				aa.ObjectType,
 				aa.InheritedObjectType,
 				aa.Flags))
