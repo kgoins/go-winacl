@@ -61,12 +61,27 @@ const (
 	ACEHeaderFlagsFailedAccessAceFlag                    = 0x80
 )
 
+var ACEHeaderFlagLookup = map[ACEHeaderFlags]string{
+	ACEHeaderFlagsObjectInheritAce:        "OBJECT_INHERIT_ACE",
+	ACEHeaderFlagsContainerInheritAce:     "CONTAINER_INHERIT_ACE",
+	ACEHeaderFlagsNoPropogateInheritAce:   "NO_PROPOGATE_INHERIT_ACE",
+	ACEHeaderFlagsInheritOnlyAce:          "INHERIT_ONLY_ACE",
+	ACEHeaderFlagsInheritedAce:            "INHERITED_ACE",
+	ACEHeaderFlagsSuccessfulAccessAceFlag: "SUCCESSFUL_ACCESS_ACE_FLAG",
+	ACEHeaderFlagsFailedAccessAceFlag:     "FAILED_ACCESS_ACE_FLAG",
+}
+
 type ACEInheritanceFlags uint32
 
 const (
 	ACEInheritanceFlagsObjectTypePresent          ACEInheritanceFlags = 0x01
 	ACEInheritanceFlagsInheritedObjectTypePresent                     = 0x02
 )
+
+var ACEInheritanceFlagsLookup = map[ACEInheritanceFlags]string{
+	ACEInheritanceFlagsObjectTypePresent:          "ACE_OBJECT_TYPE_PRESENT",
+	ACEInheritanceFlagsInheritedObjectTypePresent: "ACE_INHERITED_OBJECT_TYPE_PRESENT",
+}
 
 type ACEAccessMask struct {
 	value uint32
@@ -125,7 +140,7 @@ func (am ACEAccessMask) String() string {
 	rights, _ := bamflags.ParseInt(int64(am.value))
 	for _, right := range rights {
 		if perm := MaskLookup[uint32(right)]; perm != "" {
-			fmt.Fprintf(&sb, "%s ", perm)
+			fmt.Fprintf(&sb, "\n\t%s", perm)
 		}
 	}
 	return sb.String()
@@ -140,35 +155,50 @@ type ACE struct {
 
 func (s ACE) String() string {
 	sb := strings.Builder{}
+
 	aceType := s.GetTypeString()
 	perms := s.AccessMask.String()
+	var sid SID
+
+	sb.WriteString(fmt.Sprintf("AceType: %s\n", aceType))
 
 	switch s.ObjectAce.(type) {
 	case BasicAce:
-		sb.WriteString(fmt.Sprintf("SID: %v\n", s.ObjectAce.GetPrincipal()))
-		sb.WriteString(fmt.Sprintf("AceType: %s\nPermissions: %v\nFlags: %v\n",
-			aceType,
-			perms,
-			s.Header.Flags))
+		sb.WriteString(fmt.Sprintf("Flags: %s\n", s.Header.FlagsString()))
+		sid = s.ObjectAce.GetPrincipal()
+
 	case AdvancedAce:
 		aa := s.ObjectAce.(AdvancedAce)
-		sb.WriteString(
-			fmt.Sprintf("SID: %v\nAceType: %s\nPermissions: %s\nObjectType: %v\nInheritedObjectType: %v\nFlags: %v\n",
-				aa.GetPrincipal(),
-				aceType,
-				perms,
-				aa.ObjectType,
-				aa.InheritedObjectType,
-				aa.Flags))
+		sid = aa.GetPrincipal()
+
+		switch aa.Flags {
+		case ACEInheritanceFlagsObjectTypePresent:
+			sb.WriteString(fmt.Sprintf("ObjectType: %s\n", aa.ObjectType.Resolve()))
+		case ACEInheritanceFlagsInheritedObjectTypePresent:
+			sb.WriteString(fmt.Sprintf("InheritedObjectType: %s\n", aa.InheritedObjectType.Resolve()))
+		}
 	}
 
-	return sb.String()
+	sb.WriteString(fmt.Sprintf("Permissions: %s\n", perms))
+	return fmt.Sprintf("SID: %s\n%s", sid.String(), sb.String())
 }
 
 type ACEHeader struct {
 	Type  AceType
 	Flags byte
 	Size  uint16
+}
+
+func (ah ACEHeader) FlagsString() string {
+	sb := strings.Builder{}
+	flags, _ := bamflags.ParseInt(int64(ah.Flags))
+	for _, flag := range flags {
+		headerFlag := ACEHeaderFlags(flag)
+		f := ACEHeaderFlagLookup[headerFlag]
+		fmt.Fprintf(&sb, "%s ", f)
+	}
+
+	return sb.String()
 }
 
 //This is a GUID
@@ -196,14 +226,25 @@ func (s BasicAce) GetPrincipal() SID {
 }
 
 type AdvancedAce struct {
-	Flags               uint32 //4 bytes
-	ObjectType          GUID   //16 bytes
+	Flags               ACEInheritanceFlags //4 bytes
+	ObjectType          GUID                //16 bytes
 	InheritedObjectType GUID
 	SecurityIdentifier  SID
 }
 
 func (s AdvancedAce) GetPrincipal() SID {
 	return s.SecurityIdentifier
+}
+
+func (s AdvancedAce) FlagsString() string {
+	sb := strings.Builder{}
+	flags, _ := bamflags.ParseInt(int64(s.Flags))
+	for _, flag := range flags {
+		aaf := ACEInheritanceFlags(flag)
+		f := ACEInheritanceFlagsLookup[aaf]
+		fmt.Fprintf(&sb, "%s ", f)
+	}
+	return sb.String()
 }
 
 type ObjectAce interface {
