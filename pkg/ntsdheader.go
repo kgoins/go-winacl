@@ -15,6 +15,13 @@ type NtSecurityDescriptorHeader struct {
 	OffsetDacl  uint32
 }
 
+const (
+	DACLAutoInheritReq = 0x0100
+	DACLAutoInherited  = 0x0400
+	SACLAutoInherited  = 0x0800
+	DACLProtected      = 0x1000
+)
+
 func NewNTSDHeader(buf *bytes.Buffer) NtSecurityDescriptorHeader {
 	var descriptor = NtSecurityDescriptorHeader{}
 

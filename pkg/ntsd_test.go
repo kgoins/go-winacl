@@ -3,6 +3,7 @@ package winacl_test
 import (
 	"encoding/base64"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -14,10 +15,21 @@ func getTestNtsdBytes() ([]byte, error) {
 	testFile := filepath.Join(getTestDataDir(), "ntsd.b64")
 	testBytes, err := ioutil.ReadFile(testFile)
 	if err != nil {
-		return nil, err
+		return testBytes, err
 	}
-
 	return base64.StdEncoding.DecodeString(string(testBytes))
+}
+
+func getTestNtsdSDDLTestString() (string, error) {
+	testFile := filepath.Join(getTestDataDir(), "ntsd.sddl")
+	sddl, err := os.ReadFile(testFile)
+	return string(sddl), err
+}
+
+func newTestSD() winacl.NtSecurityDescriptor {
+	ntsdBytes, _ := getTestNtsdBytes()
+	ntsd, _ := winacl.NewNtSecurityDescriptor(ntsdBytes)
+	return ntsd
 }
 
 func TestBuildNTSD(t *testing.T) {
@@ -31,5 +43,12 @@ func TestBuildNTSD(t *testing.T) {
 
 	dacl := ntsd.DACL
 	r.NotNil(dacl)
-	r.Equal(dacl.Header.AceCount, len(dacl.Aces))
+	r.Equal(int(dacl.Header.AceCount), len(dacl.Aces))
+}
+
+func TestToSDDL(t *testing.T) {
+	r := require.New(t)
+	sddl, _ := getTestNtsdSDDLTestString()
+	ntsd := newTestSD()
+	r.Equal(sddl, ntsd.ToSDDL())
 }

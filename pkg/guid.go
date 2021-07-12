@@ -23,8 +23,12 @@ func NewGUID(buf *bytes.Buffer) GUID {
 }
 
 func (g GUID) String() string {
-	return fmt.Sprintf("%08x-%04x-%04x-%04x-%012x",
+	guid := fmt.Sprintf("%08x-%04x-%04x-%04x-%012x",
 		g.Data1, g.Data2, g.Data3, g.Data4[0:2], g.Data4[2:8])
+	if guid == "00000000-0000-0000-0000-000000000000" {
+		guid = ""
+	}
+	return guid
 }
 
 func (g GUID) Resolve() string {

@@ -102,9 +102,12 @@ const (
 
 	// Advances ACE Masks
 	ADSRightDSControlAccess = 0x00000100
+	ADSRightDSListObject    = 0x00000080
+	ADSRightDSDeleteTree    = 0x00000040
 	ADSRightDSWriteProp     = 0x00000020
 	ADSRightDSReadProp      = 0x00000010
 	ADSRightDSSelf          = 0x00000008
+	ADSRightDSListChildrend = 0x00000004
 	ADSRightDSDeleteChild   = 0x00000002
 	ADSRightDSCreateChild   = 0x00000001
 )
@@ -185,7 +188,7 @@ func (s ACE) String() string {
 
 type ACEHeader struct {
 	Type  AceType
-	Flags byte
+	Flags ACEHeaderFlags
 	Size  uint16
 }
 
