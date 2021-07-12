@@ -10,7 +10,7 @@ func NewAce(buf *bytes.Buffer) ACE {
 	ace := ACE{}
 
 	ace.Header = NewACEHeader(buf)
-	binary.Read(buf, binary.LittleEndian, &ace.AccessMask)
+	binary.Read(buf, binary.LittleEndian, &ace.AccessMask.value)
 	switch ace.Header.Type {
 	case AceTypeAccessAllowed, AceTypeAccessDenied, AceTypeSystemAudit, AceTypeSystemAlarm, AceTypeAccessAllowedCallback, AceTypeAccessDeniedCallback, AceTypeSystemAuditCallback, AceTypeSystemAlarmCallback:
 		ace.ObjectAce = NewBasicAce(buf, ace.Header.Size)
@@ -44,12 +44,12 @@ func NewAdvancedAce(buf *bytes.Buffer, totalSize uint16) AdvancedAce {
 	oa := AdvancedAce{}
 	binary.Read(buf, binary.LittleEndian, &oa.Flags)
 	offset := 12
-	if (oa.Flags & uint32(ACEInheritanceFlagsObjectTypePresent)) != 0 {
+	if (oa.Flags & (ACEInheritanceFlagsObjectTypePresent)) != 0 {
 		oa.ObjectType = NewGUID(buf)
 		offset += 16
 	}
 
-	if (oa.Flags & uint32(ACEInheritanceFlagsInheritedObjectTypePresent)) != 0 {
+	if (oa.Flags & (ACEInheritanceFlagsInheritedObjectTypePresent)) != 0 {
 		oa.InheritedObjectType = NewGUID(buf)
 		offset += 16
 	}
