@@ -34,6 +34,7 @@ func NewNtSecurityDescriptor(ntsdBytes []byte) (NtSecurityDescriptor, error) {
 	ntsd := NtSecurityDescriptor{}
 	ntsd.Header = NewNTSDHeader(buf)
 	ntsd.DACL = NewACL(buf)
+
 	sidSize := ntsd.Header.OffsetGroup - ntsd.Header.OffsetOwner
 	ntsd.Owner, err = NewSID(buf, int(sidSize))
 	if err != nil {

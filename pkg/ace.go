@@ -149,14 +149,15 @@ func (am ACEAccessMask) Raw() uint32 {
 
 // String returns an ACEAccessMask's human-readable Access Mask
 func (am ACEAccessMask) String() string {
-	sb := strings.Builder{}
+	var readableRights []string
 	rights, _ := bamflags.ParseInt(int64(am.value))
+
 	for _, right := range rights {
 		if perm := ACEAccessMaskLookup[uint32(right)]; perm != "" {
-			fmt.Fprintf(&sb, "\n\t%s", perm)
+			readableRights = append(readableRights, perm)
 		}
 	}
-	return sb.String()
+	return strings.Join(readableRights, " ")
 }
 
 // ACE represents an ACE within an ACL
@@ -207,15 +208,14 @@ type ACEHeader struct {
 
 // FlagsString returns an human-readable representation of an ACEHeader's Flags
 func (ah ACEHeader) FlagsString() string {
-	sb := strings.Builder{}
+	var readableFlags []string
 	flags, _ := bamflags.ParseInt(int64(ah.Flags))
 	for _, flag := range flags {
 		headerFlag := ACEHeaderFlags(flag)
 		f := ACEHeaderFlagLookup[headerFlag]
-		fmt.Fprintf(&sb, "%s ", f)
+		readableFlags = append(readableFlags, f)
 	}
-
-	return sb.String()
+	return strings.Join(readableFlags, " ")
 }
 
 // ACEObjectType holds information and an ACE's Object Type. A GUID
