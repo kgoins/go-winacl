@@ -138,7 +138,7 @@ func (s ACEHeader) SDDLFlags() string {
 	return sb.String()
 }
 
-//ToSDDL will convert the individual components of an ACD
+// ToSDDL will convert the individual components of an ACD
 // into an SDDL compliant string
 //
 //https://docs.microsoft.com/en-us/windows/win32/secauthz/ace-strings
@@ -187,9 +187,9 @@ func (a ACL) ToSDDL(flags string) string {
 	return sb.String()
 }
 
-// FlagString will convert Control value of an NtSecurityDescriptorHeader
+// ToSDDL will convert Control value of an NtSecurityDescriptorHeader
 // into an SDDL compliant string
-func (ndh NtSecurityDescriptorHeader) FlagString() string {
+func (ndh NtSecurityDescriptorHeader) ToSDDL() string {
 	// ControlDACLAutoInheritReq = 0x100 = AR
 	// ControlDACLAutoInherit    = 0x400 = AI
 	// ControlDACLProtected      = 0x1000 = P
@@ -212,7 +212,7 @@ func (s NtSecurityDescriptor) ToSDDL() string {
 	sb := strings.Builder{}
 	fmt.Fprintf(&sb, "O:%s", s.Owner.String())
 	fmt.Fprintf(&sb, "G:%s", s.Group.String())
-	sb.WriteString(s.DACL.ToSDDL(s.Header.FlagString()))
+	sb.WriteString(s.DACL.ToSDDL(s.Header.ToSDDL()))
 	return sb.String()
 }
 

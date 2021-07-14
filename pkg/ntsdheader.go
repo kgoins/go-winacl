@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 )
 
+// NtSecurityDescriptorHeader is the Header of a Security Descriptor
 type NtSecurityDescriptorHeader struct {
 	Revision    byte
 	Sbz1        byte
@@ -22,6 +23,8 @@ const (
 	DACLProtected      = 0x1000
 )
 
+// NewNTSDHeader is a constructor that will parse out an
+// NtSecurityDescriptorHeader from a byte buffer
 func NewNTSDHeader(buf *bytes.Buffer) NtSecurityDescriptorHeader {
 	var descriptor = NtSecurityDescriptorHeader{}
 

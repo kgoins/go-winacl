@@ -8,6 +8,7 @@ import (
 	"strings"
 )
 
+// SID represent a SID in its parts
 type SID struct {
 	Revision       byte
 	NumAuthorities byte
@@ -15,6 +16,7 @@ type SID struct {
 	SubAuthorities []uint32
 }
 
+// String returns the human-readable SID
 func (s SID) String() string {
 	var sb strings.Builder
 
@@ -31,6 +33,7 @@ func (s SID) String() string {
 	return sb.String()
 }
 
+// NewSID is a constructor that will parse out a SID from a byte buffer
 func NewSID(buf *bytes.Buffer, sidLength int) (SID, error) {
 	sid := SID{}
 	data := buf.Next(sidLength)

@@ -6,6 +6,7 @@ import (
 	"fmt"
 )
 
+// GUID holds the various parts of a GUID
 type GUID struct {
 	Data1 uint32
 	Data2 uint16
@@ -13,6 +14,7 @@ type GUID struct {
 	Data4 [8]byte
 }
 
+// NewGUID is a constructor that will parse out a GUID from a byte buffer
 func NewGUID(buf *bytes.Buffer) GUID {
 	guid := GUID{}
 	binary.Read(buf, binary.LittleEndian, &guid.Data1)
@@ -22,6 +24,9 @@ func NewGUID(buf *bytes.Buffer) GUID {
 	return guid
 }
 
+// String will return the human-readable version of a GUID
+// It returns an empty string in case of a null-initialized
+// GUID
 func (g GUID) String() string {
 	guid := fmt.Sprintf("%08x-%04x-%04x-%04x-%012x",
 		g.Data1, g.Data2, g.Data3, g.Data4[0:2], g.Data4[2:8])
@@ -31,16 +36,21 @@ func (g GUID) String() string {
 	return guid
 }
 
+// Resolve returns the common human-readable Object name as
+// defined by Microsoft. If the GUID is not resolvable, the
+// GUID string will be returned instead
+//
+// https://docs.microsoft.com/en-us/windows/win32/adschema/control-access-rights
 func (g GUID) Resolve() string {
 	guid := g.String()
-	found := Lookup[guid]
+	found := ControlAccessRightsGUIDs[guid]
 	if found != "" {
 		return found
 	}
 	return guid
 }
 
-var Lookup = map[string]string{
+var ControlAccessRightsGUIDs = map[string]string{
 	//Extended Rights Guids
 	"ee914b82-0a98-11d1-adbb-00c04fd8d5cd": "Abandon Replication",
 	"440820ad-65b4-11d1-a3da-0000f875ae0d": "Add GUID",

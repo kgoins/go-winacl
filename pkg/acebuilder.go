@@ -6,6 +6,7 @@ import (
 	"fmt"
 )
 
+// NewAce is a constructor that will parse out an Ace from a byte buffer
 func NewAce(buf *bytes.Buffer) ACE {
 	ace := ACE{}
 
@@ -21,6 +22,7 @@ func NewAce(buf *bytes.Buffer) ACE {
 	return ace
 }
 
+// NewACEHeader is a constructor that will parse out an ACEHeader from a byte buffer
 func NewACEHeader(buf *bytes.Buffer) ACEHeader {
 	header := ACEHeader{}
 	binary.Read(buf, binary.LittleEndian, &header.Type)
@@ -29,6 +31,7 @@ func NewACEHeader(buf *bytes.Buffer) ACEHeader {
 	return header
 }
 
+// NewBasicAce is a constructor that will parse out an Basic from a byte buffer
 func NewBasicAce(buf *bytes.Buffer, totalSize uint16) BasicAce {
 	oa := BasicAce{}
 
@@ -40,6 +43,7 @@ func NewBasicAce(buf *bytes.Buffer, totalSize uint16) BasicAce {
 	return oa
 }
 
+// NewAdvancedAce is a constructor that will parse out an AdvancedAce from a byte buffer
 func NewAdvancedAce(buf *bytes.Buffer, totalSize uint16) AdvancedAce {
 	oa := AdvancedAce{}
 	binary.Read(buf, binary.LittleEndian, &oa.Flags)

@@ -5,11 +5,13 @@ import (
 	"encoding/binary"
 )
 
+// ACL represents an Access Control List
 type ACL struct {
 	Header ACLHeader
 	Aces   []ACE
 }
 
+// ACLHeader represents an Access Control List's Header
 type ACLHeader struct {
 	Revision byte
 	Sbz1     byte
@@ -18,6 +20,7 @@ type ACLHeader struct {
 	Sbz2     uint16
 }
 
+// NewACLHeader is a constructor that will parse out an ACLHeader from a byte buffer
 func NewACLHeader(buf *bytes.Buffer) ACLHeader {
 	var header = ACLHeader{}
 	binary.Read(buf, binary.LittleEndian, &header.Revision)
@@ -29,6 +32,7 @@ func NewACLHeader(buf *bytes.Buffer) ACLHeader {
 	return header
 }
 
+// NewACL is a constructor that will parse out an ACL from a byte buffer
 func NewACL(buf *bytes.Buffer) ACL {
 	acl := ACL{}
 	acl.Header = NewACLHeader(buf)
