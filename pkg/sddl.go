@@ -2,11 +2,14 @@ package winacl
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/audibleblink/bamflags"
 )
 
+// AceHeaderTypeSDDL is a map of AceTypes matched to their
+// corresponding SDDL abbreviations
 var AceHeaderTypeSDDL = map[AceType]string{
 	AceTypeAccessAllowed:               "A",
 	AceTypeAccessDenied:                "D",
@@ -27,6 +30,8 @@ var AceHeaderTypeSDDL = map[AceType]string{
 	AceTypeSystemAlarmCallbackObject:   "",
 }
 
+// AceHeaderFlagsSDDL is a map of AceHeaderFlags matched to
+// their corresponding SDDL abbreviations
 var AceHeaderFlagsSDDL = map[ACEHeaderFlags]string{
 	ACEHeaderFlagsObjectInheritAce:        "OI",
 	ACEHeaderFlagsContainerInheritAce:     "CI",
@@ -37,16 +42,8 @@ var AceHeaderFlagsSDDL = map[ACEHeaderFlags]string{
 	ACEHeaderFlagsFailedAccessAceFlag:     "FA",
 }
 
-var OrderedFlags = map[string]int{
-	"OI": 0,
-	"CI": 1,
-	"NP": 2,
-	"IO": 3,
-	"ID": 4,
-	"SA": 5,
-	"FA": 6,
-}
-
+// AceRightsSDDL is a map of permission masks, mapped to their
+// corresponding SDDL abbreviations
 var AceRightsSDDL = map[uint32]string{
 	AccessMaskGenericRead:    "GR",
 	AccessMaskGenericWrite:   "GW",
@@ -69,27 +66,16 @@ var AceRightsSDDL = map[uint32]string{
 	ADSRightDSControlAccess: "CR",
 }
 
-var OrderedRights = map[string]int{
-	"CC": 0,
-	"DC": 1,
-	"LC": 2,
-	"SW": 3,
-	"RP": 4,
-	"WP": 5,
-	"DT": 6,
-	"LO": 7,
-	"CR": 8,
-
-	"SD": 9,
-	"RC": 10,
-	"WD": 11,
-	"WO": 12,
-	"GA": 13,
-	"GX": 14,
-	"GW": 15,
-	"GR": 16,
+// NtSecurityDescriptorHeaderSDDL holds the Security Descriptor
+// Control property mapped to its corresponding SDDL abbreviations
+var NtSecurityDescriptorHeaderSDDL = map[int]string{
+	ControlDACLAutoInheritReq: "AR",
+	ControlDACLAutoInherit:    "AI",
+	ControlDACLProtected:      "P",
 }
 
+// WellKnownSIDs is a map of common Windows SIDs mapped to
+// their corresponding abbreviations
 var WellKnownSIDs = map[string]string{
 	"S-1-1-0":      "WD",
 	"S-1-3-0":      "CO",
@@ -127,30 +113,35 @@ const (
 	ControlDACLProtected      = 0x1000
 )
 
+// RightsString returns the representation of an ACE's permissions,
+// in SDDL format
 func (s ACE) RightsString() string {
-	output := make([]string, len(OrderedRights))
-	flags, _ := bamflags.ParseInt(int64(s.AccessMask.value))
+	sb := strings.Builder{}
+	flags := parseAndSortFlags(int(s.AccessMask.value))
+
 	for _, flag := range flags {
 		symbol := AceRightsSDDL[uint32(flag)]
-		idx := OrderedRights[symbol]
-		output[idx] = symbol
+		sb.WriteString(symbol)
 	}
-	return strings.Join(output, "")
+	return sb.String()
 }
 
 func (s ACEHeader) SDDLFlags() string {
-	output := make([]string, len(OrderedFlags))
-	flags, _ := bamflags.ParseInt(int64(s.Flags))
-	// AceHeaderFlagsSDDL[s.Header.Flags], // AceFlags
+	sb := strings.Builder{}
+	flags := parseAndSortFlags(int(s.Flags))
+
 	for _, flag := range flags {
 		fType := ACEHeaderFlags(flag)
 		symbol := AceHeaderFlagsSDDL[fType]
-		idx := OrderedFlags[symbol]
-		output[idx] = symbol
+		sb.WriteString(symbol)
 	}
-	return strings.Join(output, "")
+	return sb.String()
 }
 
+//ToSDDL will convert the individual components of an ACD
+// into an SDDL compliant string
+//
+//https://docs.microsoft.com/en-us/windows/win32/secauthz/ace-strings
 func (s ACE) ToSDDL() string {
 	format := "(%s;%s;%s;%s;%s;%s)"
 
@@ -183,6 +174,8 @@ func (s ACE) ToSDDL() string {
 	return sddlString
 }
 
+// ToSDDL will convert the individual components of an ACD
+// into an SDDL compliant string
 func (a ACL) ToSDDL(flags string) string {
 	sb := strings.Builder{}
 	// TODO Change when SACLs are implemented
@@ -194,33 +187,37 @@ func (a ACL) ToSDDL(flags string) string {
 	return sb.String()
 }
 
+// FlagString will convert Control value of an NtSecurityDescriptorHeader
+// into an SDDL compliant string
 func (ndh NtSecurityDescriptorHeader) FlagString() string {
 	// ControlDACLAutoInheritReq = 0x100 = AR
 	// ControlDACLAutoInherit    = 0x400 = AI
 	// ControlDACLProtected      = 0x1000 = P
 	sb := strings.Builder{}
+	flags := parseAndSortFlags(int(ndh.Control))
 
-	ar, _ := bamflags.Contains(int64(ndh.Control), int64(ControlDACLAutoInheritReq))
-	ai, _ := bamflags.Contains(int64(ndh.Control), int64(ControlDACLAutoInherit))
-	p, _ := bamflags.Contains(int64(ndh.Control), int64(ControlDACLProtected))
-
-	if ar {
-		sb.WriteString("AR")
-	}
-	if ai {
-		sb.WriteString("AI")
-	}
-	if p {
-		sb.WriteString("AI")
+	for _, flag := range flags {
+		symbol := NtSecurityDescriptorHeaderSDDL[flag]
+		sb.WriteString(symbol)
 	}
 
 	return sb.String()
 }
 
+// ToSDDL will convert the individual components of a NtSecurityDescriptor
+// into an SDDL compliant string
+//
+// https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-dtyp/2918391b-75b9-4eeb-83f0-7fdc04a5c6c9
 func (s NtSecurityDescriptor) ToSDDL() string {
 	sb := strings.Builder{}
 	fmt.Fprintf(&sb, "O:%s", s.Owner.String())
 	fmt.Fprintf(&sb, "G:%s", s.Group.String())
 	sb.WriteString(s.DACL.ToSDDL(s.Header.FlagString()))
 	return sb.String()
+}
+
+func parseAndSortFlags(mask int) []int {
+	flags, _ := bamflags.ParseInt(int64(mask))
+	sort.Ints(flags)
+	return flags
 }
