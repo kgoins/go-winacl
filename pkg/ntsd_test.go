@@ -11,27 +11,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func getTestNtsdBytes() ([]byte, error) {
-	testFile := filepath.Join(getTestDataDir(), "ntsd.b64")
-	testBytes, err := ioutil.ReadFile(testFile)
-	if err != nil {
-		return testBytes, err
-	}
-	return base64.StdEncoding.DecodeString(string(testBytes))
-}
-
-func getTestNtsdSDDLTestString() (string, error) {
-	testFile := filepath.Join(getTestDataDir(), "ntsd.sddl")
-	sddl, err := os.ReadFile(testFile)
-	return string(sddl), err
-}
-
-func newTestSD() winacl.NtSecurityDescriptor {
-	ntsdBytes, _ := getTestNtsdBytes()
-	ntsd, _ := winacl.NewNtSecurityDescriptor(ntsdBytes)
-	return ntsd
-}
-
 func TestBuildNTSD(t *testing.T) {
 	r := require.New(t)
 
@@ -51,4 +30,27 @@ func TestToSDDL(t *testing.T) {
 	sddl, _ := getTestNtsdSDDLTestString()
 	ntsd := newTestSD()
 	r.Equal(sddl, ntsd.ToSDDL())
+}
+
+/// Util Functions Below Here
+
+func getTestNtsdBytes() ([]byte, error) {
+	testFile := filepath.Join(getTestDataDir(), "ntsd.b64")
+	testBytes, err := ioutil.ReadFile(testFile)
+	if err != nil {
+		return testBytes, err
+	}
+	return base64.StdEncoding.DecodeString(string(testBytes))
+}
+
+func getTestNtsdSDDLTestString() (string, error) {
+	testFile := filepath.Join(getTestDataDir(), "ntsd.sddl")
+	sddl, err := os.ReadFile(testFile)
+	return string(sddl), err
+}
+
+func newTestSD() winacl.NtSecurityDescriptor {
+	ntsdBytes, _ := getTestNtsdBytes()
+	ntsd, _ := winacl.NewNtSecurityDescriptor(ntsdBytes)
+	return ntsd
 }

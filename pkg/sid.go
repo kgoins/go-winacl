@@ -20,6 +20,10 @@ type SID struct {
 func (s SID) String() string {
 	var sb strings.Builder
 
+	// if len(s.Authority) < 6 {
+	// 	return ""
+	// }
+
 	fmt.Fprintf(&sb, "S-%v-%v", s.Revision, int(s.Authority[5]))
 	for i := 0; i < int(s.NumAuthorities); i++ {
 		fmt.Fprintf(&sb, "-%v", s.SubAuthorities[i])
