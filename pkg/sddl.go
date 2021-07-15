@@ -66,8 +66,17 @@ var AceRightsSDDL = map[uint32]string{
 	ADSRightDSControlAccess: "CR",
 }
 
+// https://docs.microsoft.com/en-us/windows/win32/secauthz/security-descriptor-control
+const (
+	ControlDACLAutoInheritReq = 0x100
+	ControlDACLAutoInherit    = 0x400
+	ControlDACLProtected      = 0x1000
+)
+
 // NtSecurityDescriptorHeaderSDDL holds the Security Descriptor
 // Control property mapped to its corresponding SDDL abbreviations
+// NOTE: ntsd.ToSDDL() relies on these being the only 3 entries
+// in this map.
 var NtSecurityDescriptorHeaderSDDL = map[int]string{
 	ControlDACLAutoInheritReq: "AR",
 	ControlDACLAutoInherit:    "AI",
@@ -105,13 +114,6 @@ var WellKnownSIDs = map[string]string{
 	"S-1-5-32-556": "NO",
 	"S-1-5-32-558": "MY",
 }
-
-// https://docs.microsoft.com/en-us/windows/win32/secauthz/security-descriptor-control
-const (
-	ControlDACLAutoInheritReq = 0x100
-	ControlDACLAutoInherit    = 0x400
-	ControlDACLProtected      = 0x1000
-)
 
 // RightsString returns the representation of an ACE's permissions,
 // in SDDL format
