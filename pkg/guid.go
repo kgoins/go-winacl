@@ -14,14 +14,24 @@ type GUID struct {
 	Data4 [8]byte
 }
 
+const nullGUID = "00000000-0000-0000-0000-000000000000"
+
 // NewGUID is a constructor that will parse out a GUID from a byte buffer
-func NewGUID(buf *bytes.Buffer) GUID {
-	guid := GUID{}
-	binary.Read(buf, binary.LittleEndian, &guid.Data1)
-	binary.Read(buf, binary.LittleEndian, &guid.Data2)
-	binary.Read(buf, binary.LittleEndian, &guid.Data3)
-	binary.Read(buf, binary.LittleEndian, &guid.Data4)
-	return guid
+func NewGUID(buf *bytes.Buffer) (guid GUID, err error) {
+	err = binary.Read(buf, binary.LittleEndian, &guid.Data1)
+	if err != nil {
+		return
+	}
+	err = binary.Read(buf, binary.LittleEndian, &guid.Data2)
+	if err != nil {
+		return
+	}
+	err = binary.Read(buf, binary.LittleEndian, &guid.Data3)
+	if err != nil {
+		return
+	}
+	err = binary.Read(buf, binary.LittleEndian, &guid.Data4)
+	return
 }
 
 // String will return the human-readable version of a GUID
@@ -30,7 +40,7 @@ func NewGUID(buf *bytes.Buffer) GUID {
 func (g GUID) String() string {
 	guid := fmt.Sprintf("%08x-%04x-%04x-%04x-%012x",
 		g.Data1, g.Data2, g.Data3, g.Data4[0:2], g.Data4[2:8])
-	if guid == "00000000-0000-0000-0000-000000000000" {
+	if guid == nullGUID {
 		guid = ""
 	}
 	return guid

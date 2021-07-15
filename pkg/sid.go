@@ -3,7 +3,6 @@ package winacl
 import (
 	"bytes"
 	"encoding/binary"
-	"errors"
 	"fmt"
 	"strings"
 )
@@ -20,9 +19,9 @@ type SID struct {
 func (s SID) String() string {
 	var sb strings.Builder
 
-	// if len(s.Authority) < 6 {
-	// 	return ""
-	// }
+	if len(s.Authority) < 6 {
+		return ""
+	}
 
 	fmt.Fprintf(&sb, "S-%v-%v", s.Revision, int(s.Authority[5]))
 	for i := 0; i < int(s.NumAuthorities); i++ {
@@ -38,11 +37,11 @@ func NewSID(buf *bytes.Buffer, sidLength int) (SID, error) {
 	data := buf.Next(sidLength)
 
 	if revision := data[0]; revision != 1 {
-		return sid, errors.New("invalid SID revision")
+		return sid, SIDInvalidError{"invalid SID revision"}
 	} else if numAuth := data[1]; numAuth > 15 {
-		return sid, errors.New("invalid number of subauthorities")
+		return sid, SIDInvalidError{"invalid number of subauthorities"}
 	} else if ((int(numAuth) * 4) + 8) < len(data) {
-		return sid, errors.New("invalid sid length")
+		return sid, SIDInvalidError{"invalid SID length"}
 	} else {
 		authority := data[2:8]
 		subAuth := make([]uint32, numAuth)
@@ -58,4 +57,10 @@ func NewSID(buf *bytes.Buffer, sidLength int) (SID, error) {
 
 		return sid, nil
 	}
+}
+
+type SIDInvalidError struct{ msg string }
+
+func (e SIDInvalidError) Error() string {
+	return fmt.Sprintf("NewSID: %s", e.msg)
 }

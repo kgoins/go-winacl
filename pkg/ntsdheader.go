@@ -25,16 +25,34 @@ const (
 
 // NewNTSDHeader is a constructor that will parse out an
 // NtSecurityDescriptorHeader from a byte buffer
-func NewNTSDHeader(buf *bytes.Buffer) NtSecurityDescriptorHeader {
-	var descriptor = NtSecurityDescriptorHeader{}
-
-	binary.Read(buf, binary.LittleEndian, &descriptor.Revision)
-	binary.Read(buf, binary.LittleEndian, &descriptor.Sbz1)
-	binary.Read(buf, binary.LittleEndian, &descriptor.Control)
-	binary.Read(buf, binary.LittleEndian, &descriptor.OffsetOwner)
-	binary.Read(buf, binary.LittleEndian, &descriptor.OffsetGroup)
-	binary.Read(buf, binary.LittleEndian, &descriptor.OffsetSacl)
-	binary.Read(buf, binary.LittleEndian, &descriptor.OffsetDacl)
-
-	return descriptor
+func NewNTSDHeader(buf *bytes.Buffer) (header NtSecurityDescriptorHeader, err error) {
+	err = binary.Read(buf, binary.LittleEndian, &header.Revision)
+	if err != nil {
+		return
+	}
+	err = binary.Read(buf, binary.LittleEndian, &header.Sbz1)
+	if err != nil {
+		return
+	}
+	err = binary.Read(buf, binary.LittleEndian, &header.Control)
+	if err != nil {
+		return
+	}
+	err = binary.Read(buf, binary.LittleEndian, &header.OffsetOwner)
+	if err != nil {
+		return
+	}
+	err = binary.Read(buf, binary.LittleEndian, &header.OffsetGroup)
+	if err != nil {
+		return
+	}
+	err = binary.Read(buf, binary.LittleEndian, &header.OffsetSacl)
+	if err != nil {
+		return
+	}
+	err = binary.Read(buf, binary.LittleEndian, &header.OffsetDacl)
+	if err != nil {
+		return
+	}
+	return
 }

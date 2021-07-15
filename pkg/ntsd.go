@@ -31,9 +31,17 @@ func (s NtSecurityDescriptor) String() string {
 func NewNtSecurityDescriptor(ntsdBytes []byte) (NtSecurityDescriptor, error) {
 	var buf = bytes.NewBuffer(ntsdBytes)
 	var err error
+
 	ntsd := NtSecurityDescriptor{}
-	ntsd.Header = NewNTSDHeader(buf)
-	ntsd.DACL = NewACL(buf)
+	ntsd.Header, err = NewNTSDHeader(buf)
+	if err != nil {
+		return ntsd, err
+	}
+
+	ntsd.DACL, err = NewACL(buf)
+	if err != nil {
+		return ntsd, err
+	}
 
 	sidSize := ntsd.Header.OffsetGroup - ntsd.Header.OffsetOwner
 	ntsd.Owner, err = NewSID(buf, int(sidSize))
