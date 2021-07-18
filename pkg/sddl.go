@@ -83,9 +83,9 @@ var NtSecurityDescriptorHeaderSDDL = map[int]string{
 	ControlDACLProtected:      "P",
 }
 
-// WellKnownSIDs is a map of common Windows SIDs mapped to
+// WellKnownSIDsSSDL is a map of common Windows SIDs mapped to
 // their corresponding abbreviations
-var WellKnownSIDs = map[string]string{
+var WellKnownSIDsSSDL = map[string]string{
 	"S-1-1-0":      "WD",
 	"S-1-3-0":      "CO",
 	"S-1-3-1":      "CG",
@@ -160,7 +160,7 @@ func (s ACE) ToSDDL() string {
 	}
 
 	accountSID := s.ObjectAce.GetPrincipal().String()
-	if wellKnown := WellKnownSIDs[accountSID]; wellKnown != "" {
+	if wellKnown := WellKnownSIDsSSDL[accountSID]; wellKnown != "" {
 		accountSID = wellKnown
 	}
 
