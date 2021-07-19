@@ -149,6 +149,13 @@ func (am ACEAccessMask) Raw() uint32 {
 
 // String returns an ACEAccessMask's human-readable Access Mask
 func (am ACEAccessMask) String() string {
+	readableRights := am.StringSlice()
+	return strings.Join(readableRights, " ")
+}
+
+// StringSlice, like String, returns human-readable permissions,
+// except as a slice of string
+func (am ACEAccessMask) StringSlice() []string {
 	var readableRights []string
 	rights, _ := bamflags.ParseInt(int64(am.value))
 
@@ -157,7 +164,7 @@ func (am ACEAccessMask) String() string {
 			readableRights = append(readableRights, perm)
 		}
 	}
-	return strings.Join(readableRights, " ")
+	return readableRights
 }
 
 // ACE represents an ACE within an ACL
