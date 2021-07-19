@@ -283,21 +283,3 @@ func (s AdvancedAce) FlagsString() string {
 type ObjectAce interface {
 	GetPrincipal() SID
 }
-
-type AccessAllowedAce BasicAce
-type AccessDeniedAce BasicAce
-type SystemAuditAce BasicAce
-type SystemAlarmAce BasicAce
-type AccessAllowedCompoundAce struct{} // No idea what this actually is and it doesn't appear to be documented anywhere
-type AccessAllowedObjectAce AdvancedAce
-type AccessDeniedObjectAce AdvancedAce
-type SystemAuditObjectAce AdvancedAce
-type SystemAlarmObjectAce AdvancedAce
-type AccessAllowedCallbackAce BasicAce
-type AccessDeniedCallbackAce BasicAce
-type AccessAllowedCallbackObjectAce AdvancedAce
-type AccessDeniedCallbackObjectAce AdvancedAce
-type SystemAuditCallbackAce BasicAce
-type SystemAlarmCallbackAce BasicAce
-type SystemAuditCallbackObjectAce AdvancedAce
-type SystemAlarmCallbackObjectAce AdvancedAce
