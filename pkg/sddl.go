@@ -2,7 +2,6 @@ package winacl
 
 import (
 	"fmt"
-	"sort"
 	"strings"
 
 	"github.com/audibleblink/bamflags"
@@ -153,7 +152,7 @@ var WellKnownSIDsSSDL = map[string]string{
 // in SDDL format
 func (s ACE) RightsString() string {
 	sb := strings.Builder{}
-	flags := parseAndSortFlags(int(s.AccessMask.value))
+	flags, _ := bamflags.ParseInt(int64(s.AccessMask.value))
 
 	for _, flag := range flags {
 		symbol := AceRightsSDDL[uint32(flag)]
@@ -164,7 +163,7 @@ func (s ACE) RightsString() string {
 
 func (s ACEHeader) SDDLFlags() string {
 	sb := strings.Builder{}
-	flags := parseAndSortFlags(int(s.Flags))
+	flags, _ := bamflags.ParseInt(int64(s.Flags))
 
 	for _, flag := range flags {
 		fType := ACEHeaderFlags(flag)
@@ -230,7 +229,7 @@ func (ndh NtSecurityDescriptorHeader) ToSDDL() string {
 	// ControlDACLAutoInherit    = 0x400 = AI
 	// ControlDACLProtected      = 0x1000 = P
 	sb := strings.Builder{}
-	flags := parseAndSortFlags(int(ndh.Control))
+	flags, _ := bamflags.ParseInt(int64(ndh.Control))
 
 	for _, flag := range flags {
 		symbol := NtSecurityDescriptorHeaderSDDL[flag]
@@ -250,10 +249,4 @@ func (s NtSecurityDescriptor) ToSDDL() string {
 	fmt.Fprintf(&sb, "G:%s", s.Group.String())
 	sb.WriteString(s.DACL.ToSDDL(s.Header.ToSDDL()))
 	return sb.String()
-}
-
-func parseAndSortFlags(mask int) []int {
-	flags, _ := bamflags.ParseInt(int64(mask))
-	sort.Ints(flags)
-	return flags
 }
