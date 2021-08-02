@@ -7,6 +7,8 @@ import (
 	"github.com/audibleblink/bamflags"
 )
 
+// AceType is the type of ACE as defined by Microsoft here:
+// https://docs.microsoft.com/en-us/windows/win32/secauthz/access-control-entries
 type AceType byte
 
 const (
@@ -29,7 +31,8 @@ const (
 	AceTypeSystemAlarmCallbackObject
 )
 
-var TypeLookup = map[AceType]string{
+// ACETypeLookup maps AceTypes to a human-readable labels
+var ACETypeLookup = map[AceType]string{
 	AceTypeAccessAllowed:               "ACCESS_ALLOWED",
 	AceTypeAccessDenied:                "ACCESS_DENIED",
 	AceTypeSystemAudit:                 "SYSTEM_AUDIT",
@@ -49,6 +52,7 @@ var TypeLookup = map[AceType]string{
 	AceTypeSystemAlarmCallbackObject:   "SYSTEM_ALARM_CALLBACK_OBJECT",
 }
 
+// AceHeadFlags is a type representing an ACEs header
 type ACEHeaderFlags byte
 
 const (
@@ -71,6 +75,7 @@ var ACEHeaderFlagLookup = map[ACEHeaderFlags]string{
 	ACEHeaderFlagsFailedAccessAceFlag:     "FAILED_ACCESS_ACE_FLAG",
 }
 
+// ACEInheritanceFlags is a type representing an ACEs inheritance flags
 type ACEInheritanceFlags uint32
 
 const (
@@ -78,11 +83,13 @@ const (
 	ACEInheritanceFlagsInheritedObjectTypePresent                     = 0x02
 )
 
+// ACEInheritanceFlagsLookup maps ACEInheritanceFlags to a human-readable labels
 var ACEInheritanceFlagsLookup = map[ACEInheritanceFlags]string{
 	ACEInheritanceFlagsObjectTypePresent:          "ACE_OBJECT_TYPE_PRESENT",
 	ACEInheritanceFlagsInheritedObjectTypePresent: "ACE_INHERITED_OBJECT_TYPE_PRESENT",
 }
 
+// ACEAccessMask represents an ACE's permissions
 type ACEAccessMask struct {
 	value uint32
 }
@@ -102,14 +109,18 @@ const (
 
 	// Advances ACE Masks
 	ADSRightDSControlAccess = 0x00000100
+	ADSRightDSListObject    = 0x00000080
+	ADSRightDSDeleteTree    = 0x00000040
 	ADSRightDSWriteProp     = 0x00000020
 	ADSRightDSReadProp      = 0x00000010
 	ADSRightDSSelf          = 0x00000008
+	ADSRightDSListChildrend = 0x00000004
 	ADSRightDSDeleteChild   = 0x00000002
 	ADSRightDSCreateChild   = 0x00000001
 )
 
-var MaskLookup = map[uint32]string{
+// ACEAccessMaskLookup maps ACEAccessMasks to a human-readable labels
+var ACEAccessMaskLookup = map[uint32]string{
 	AccessMaskGenericRead:    "GENERIC_READ",
 	AccessMaskGenericWrite:   "GENERIC_WRITE",
 	AccessMaskGenericExecute: "GENERIC_EXECUTE",
@@ -131,28 +142,40 @@ var MaskLookup = map[uint32]string{
 	ADSRightDSCreateChild:   "CREATE_CHILD",
 }
 
+// Raw returns an ACEAccessMask's uint32 Access Mask
 func (am ACEAccessMask) Raw() uint32 {
 	return am.value
 }
 
+// String returns an ACEAccessMask's human-readable Access Mask
 func (am ACEAccessMask) String() string {
-	sb := strings.Builder{}
-	rights, _ := bamflags.ParseInt(int64(am.value))
-	for _, right := range rights {
-		if perm := MaskLookup[uint32(right)]; perm != "" {
-			fmt.Fprintf(&sb, "\n\t%s", perm)
-		}
-	}
-	return sb.String()
+	readableRights := am.StringSlice()
+	return strings.Join(readableRights, " ")
 }
 
-//Header + AccessMask is 16 bytes
+// StringSlice, like String, returns human-readable permissions,
+// except as a slice of string
+func (am ACEAccessMask) StringSlice() []string {
+	var readableRights []string
+	rights, _ := bamflags.ParseInt(int64(am.value))
+
+	for _, right := range rights {
+		if perm := ACEAccessMaskLookup[uint32(right)]; perm != "" {
+			readableRights = append(readableRights, perm)
+		}
+	}
+	return readableRights
+}
+
+// ACE represents an ACE within an ACL
 type ACE struct {
+	//Header + AccessMask is 16 bytes
 	Header     ACEHeader
 	AccessMask ACEAccessMask
 	ObjectAce  ObjectAce
 }
 
+// Strings returns an human-readable representation of an ACE
 func (s ACE) String() string {
 	sb := strings.Builder{}
 
@@ -183,25 +206,26 @@ func (s ACE) String() string {
 	return fmt.Sprintf("SID: %s\n%s", sid.String(), sb.String())
 }
 
+// ACEHeader represents an ACE Header
 type ACEHeader struct {
 	Type  AceType
-	Flags byte
+	Flags ACEHeaderFlags
 	Size  uint16
 }
 
+// FlagsString returns an human-readable representation of an ACEHeader's Flags
 func (ah ACEHeader) FlagsString() string {
-	sb := strings.Builder{}
+	var readableFlags []string
 	flags, _ := bamflags.ParseInt(int64(ah.Flags))
 	for _, flag := range flags {
 		headerFlag := ACEHeaderFlags(flag)
 		f := ACEHeaderFlagLookup[headerFlag]
-		fmt.Fprintf(&sb, "%s ", f)
+		readableFlags = append(readableFlags, f)
 	}
-
-	return sb.String()
+	return strings.Join(readableFlags, " ")
 }
 
-//This is a GUID
+// ACEObjectType holds information and an ACE's Object Type. A GUID
 type ACEObjectType struct {
 	PartA uint32
 	PartB uint16
@@ -209,22 +233,27 @@ type ACEObjectType struct {
 	PartD [8]byte
 }
 
+// GetType returns the ACE type, fetched from the ACE Header
 func (s ACE) GetType() AceType {
 	return s.Header.Type
 }
 
+// GetTypeString returns the ACE type as a human-readable string
 func (s ACE) GetTypeString() string {
-	return TypeLookup[s.Header.Type]
+	return ACETypeLookup[s.Header.Type]
 }
 
+// BasicAce represent a Simple ACEs
 type BasicAce struct {
 	SecurityIdentifier SID
 }
 
+// GetPrincipal returns an ACEs Principal
 func (s BasicAce) GetPrincipal() SID {
 	return s.SecurityIdentifier
 }
 
+//AdvancedAce represents an Object Ace
 type AdvancedAce struct {
 	Flags               ACEInheritanceFlags //4 bytes
 	ObjectType          GUID                //16 bytes
@@ -232,10 +261,12 @@ type AdvancedAce struct {
 	SecurityIdentifier  SID
 }
 
+// GetPrincipal returns an ACEs Principal
 func (s AdvancedAce) GetPrincipal() SID {
 	return s.SecurityIdentifier
 }
 
+// FlagsString returns an human-readable representation of an ACEHeader's Flags
 func (s AdvancedAce) FlagsString() string {
 	sb := strings.Builder{}
 	flags, _ := bamflags.ParseInt(int64(s.Flags))
@@ -247,27 +278,8 @@ func (s AdvancedAce) FlagsString() string {
 	return sb.String()
 }
 
+// ObjectAce is an interface that defines what constitutes an ACE within
+// go-winacl
 type ObjectAce interface {
 	GetPrincipal() SID
 }
-
-type AccessAllowedAce BasicAce
-type AccessDeniedAce BasicAce
-type SystemAuditAce BasicAce
-type SystemAlarmAce BasicAce
-
-// No idea what this actually is and it doesn't appear to be documented anywhere
-type AccessAllowedCompoundAce struct{}
-
-type AccessAllowedObjectAce AdvancedAce
-type AccessDeniedObjectAce AdvancedAce
-type SystemAuditObjectAce AdvancedAce
-type SystemAlarmObjectAce AdvancedAce
-type AccessAllowedCallbackAce BasicAce
-type AccessDeniedCallbackAce BasicAce
-type AccessAllowedCallbackObjectAce AdvancedAce
-type AccessDeniedCallbackObjectAce AdvancedAce
-type SystemAuditCallbackAce BasicAce
-type SystemAlarmCallbackAce BasicAce
-type SystemAuditCallbackObjectAce AdvancedAce
-type SystemAlarmCallbackObjectAce AdvancedAce
