@@ -44,6 +44,14 @@ func NewNtSecurityDescriptor(ntsdBytes []byte) (NtSecurityDescriptor, error) {
 	}
 
 	sidSize := ntsd.Header.OffsetGroup - ntsd.Header.OffsetOwner
+
+	// it seems that sometimes the owner and group are at the front of the bytes
+	// stream as well as being part of the first ACE. or something like that...
+	if sidSize == 0 {
+		ntsd.Owner = ntsd.DACL.Aces[0].ObjectAce.GetPrincipal()
+		ntsd.Group = ntsd.DACL.Aces[0].ObjectAce.GetPrincipal()
+		return ntsd, nil
+	}
 	ntsd.Owner, err = NewSID(buf, int(sidSize))
 	if err != nil {
 		return ntsd, err
