@@ -314,9 +314,9 @@ type ObjectAce interface {
 
 func GuidParser(guid GUID) string{
 	var uuid string
-	timeLow := fmt.Sprintf("%02x",guid.Data1)
-	timeMid := fmt.Sprintf("%02x",guid.Data2)
-	timeHighAndVersion := fmt.Sprintf("%02x",guid.Data3)
+	timeLow := fmt.Sprintf("%08x",guid.Data1)
+	timeMid := fmt.Sprintf("%04x",guid.Data2)
+	timeHighAndVersion := fmt.Sprintf("%04x",guid.Data3)
 	clockSeqHiAndReserved := fmt.Sprintf("%02x",guid.Data4[0])
 	clockSeqLow := fmt.Sprintf("%02x",guid.Data4[1])
 	node := fmt.Sprintf("%02x%02x%02x%02x%02x%02x",guid.Data4[2],guid.Data4[3],
