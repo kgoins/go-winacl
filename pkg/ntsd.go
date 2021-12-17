@@ -38,6 +38,11 @@ func NewNtSecurityDescriptor(ntsdBytes []byte) (NtSecurityDescriptor, error) {
 		return ntsd, err
 	}
 
+	ntsd.SACL, err = NewACL(buf)
+	if err != nil {
+		return ntsd, err
+	}
+
 	ntsd.DACL, err = NewACL(buf)
 	if err != nil {
 		return ntsd, err

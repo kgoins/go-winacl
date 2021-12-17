@@ -253,6 +253,14 @@ func (s BasicAce) GetPrincipal() SID {
 	return s.SecurityIdentifier
 }
 
+func (s BasicAce) GetInheritedObjectType() string {
+	return ""
+}
+
+func (s BasicAce) GetObjectType() string {
+	return ""
+}
+
 //AdvancedAce represents an Object Ace
 type AdvancedAce struct {
 	Flags               ACEInheritanceFlags //4 bytes
@@ -264,6 +272,14 @@ type AdvancedAce struct {
 // GetPrincipal returns an ACEs Principal
 func (s AdvancedAce) GetPrincipal() SID {
 	return s.SecurityIdentifier
+}
+
+func (s AdvancedAce) GetInheritedObjectType() string {
+	return GuidParser(s.InheritedObjectType)
+}
+
+func (s AdvancedAce) GetObjectType() string {
+	return GuidParser(s.ObjectType)
 }
 
 // FlagsString returns an human-readable representation of an ACEHeader's Flags
@@ -282,4 +298,21 @@ func (s AdvancedAce) FlagsString() string {
 // go-winacl
 type ObjectAce interface {
 	GetPrincipal() SID
+	GetInheritedObjectType() string
+	GetObjectType() string
+}
+
+func GuidParser(guid GUID) string{
+	var uuid string
+	timeLow := fmt.Sprintf("%02x",guid.Data1)
+	timeMid := fmt.Sprintf("%02x",guid.Data2)
+	timeHighAndVersion := fmt.Sprintf("%02x",guid.Data3)
+	clockSeqHiAndReserved := fmt.Sprintf("%02x",guid.Data4[0])
+	clockSeqLow := fmt.Sprintf("%02x",guid.Data4[1])
+	node := fmt.Sprintf("%02x%02x%02x%02x%02x%02x",guid.Data4[2],guid.Data4[3],
+		guid.Data4[4],guid.Data4[5],guid.Data4[6],guid.Data4[7])
+
+	uuid = timeLow + "-" + timeMid + "-" + timeHighAndVersion + "-" +
+		clockSeqHiAndReserved + clockSeqLow + "-" + node
+	return "{" + uuid + "}"
 }
