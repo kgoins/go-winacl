@@ -261,6 +261,11 @@ func (s BasicAce) GetObjectType() string {
 	return ""
 }
 
+func (s BasicAce) GetInheritanceFlags() ACEInheritanceFlags{
+	var flag ACEInheritanceFlags
+	return flag
+}
+
 //AdvancedAce represents an Object Ace
 type AdvancedAce struct {
 	Flags               ACEInheritanceFlags //4 bytes
@@ -282,6 +287,10 @@ func (s AdvancedAce) GetObjectType() string {
 	return GuidParser(s.ObjectType)
 }
 
+func (s AdvancedAce) GetInheritanceFlags() ACEInheritanceFlags{
+	return s.Flags
+}
+
 // FlagsString returns an human-readable representation of an ACEHeader's Flags
 func (s AdvancedAce) FlagsString() string {
 	sb := strings.Builder{}
@@ -300,6 +309,7 @@ type ObjectAce interface {
 	GetPrincipal() SID
 	GetInheritedObjectType() string
 	GetObjectType() string
+	GetInheritanceFlags() ACEInheritanceFlags
 }
 
 func GuidParser(guid GUID) string{
